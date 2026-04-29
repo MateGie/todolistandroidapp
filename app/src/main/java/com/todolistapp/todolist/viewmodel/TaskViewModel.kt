@@ -21,16 +21,28 @@ class TaskViewModel(private val userId: String) : ViewModel() {
     private val _filter = MutableStateFlow(FilterType.ALL)
     val filter: StateFlow<FilterType> = _filter.asStateFlow()
 
+    private val _sortType = MutableStateFlow(SortType.DATE_DESC)
+    val sortType: StateFlow<SortType> = _sortType.asStateFlow()
+
     private val _allExpanded = MutableStateFlow(false)
     val allExpanded: StateFlow<Boolean> = _allExpanded.asStateFlow()
 
-    val tasks: StateFlow<List<Task>> = _filter.flatMapLatest { filterType ->
-        when (filterType) {
-            FilterType.ALL -> repository.observeAllTasks()
-            FilterType.ACTIVE -> repository.observeTasksByStatus(TaskStatus.ACTIVE)
-            FilterType.IN_PROGRESS -> repository.observeTasksByStatus(TaskStatus.IN_PROGRESS)
-            FilterType.ON_HOLD -> repository.observeTasksByStatus(TaskStatus.ON_HOLD)
-            FilterType.COMPLETED -> repository.observeTasksByStatus(TaskStatus.COMPLETED)
+    val tasks: StateFlow<List<Task>> = kotlinx.coroutines.flow.combine(
+        _filter.flatMapLatest { filterType ->
+            when (filterType) {
+                FilterType.ALL -> repository.observeAllTasks()
+                FilterType.ACTIVE -> repository.observeTasksByStatus(TaskStatus.ACTIVE)
+                FilterType.IN_PROGRESS -> repository.observeTasksByStatus(TaskStatus.IN_PROGRESS)
+                FilterType.ON_HOLD -> repository.observeTasksByStatus(TaskStatus.ON_HOLD)
+                FilterType.COMPLETED -> repository.observeTasksByStatus(TaskStatus.COMPLETED)
+            }
+        },
+        _sortType
+    ) { taskList, sort ->
+        when (sort) {
+            SortType.DATE_DESC -> taskList.sortedByDescending { it.createdAt }
+            SortType.DATE_ASC -> taskList.sortedBy { it.createdAt }
+            SortType.ALPHABETICAL -> taskList.sortedBy { it.title.lowercase() }
         }
     }.stateIn(
         scope = viewModelScope,
@@ -40,6 +52,10 @@ class TaskViewModel(private val userId: String) : ViewModel() {
 
     fun setFilter(filter: FilterType) {
         _filter.value = filter
+    }
+
+    fun setSortType(sortType: SortType) {
+        _sortType.value = sortType
     }
 
     fun toggleAllExpanded() {

@@ -28,7 +28,13 @@ class FirestoreTaskRepository(private val userId: String) {
     private fun observeQuery(query: Query): Flow<List<Task>> = callbackFlow {
         val registration = query.addSnapshotListener { snapshot, error ->
             if (error != null) {
-                close(error)
+                // If the error is PERMISSION_DENIED (often caused by logging out),
+                // we close the flow gracefully instead of crashing.
+                if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                    close()
+                } else {
+                    close(error)
+                }
                 return@addSnapshotListener
             }
 

@@ -8,13 +8,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -43,6 +48,7 @@ import com.todolistapp.todolist.data.model.Task
 import com.todolistapp.todolist.ui.components.AddEditTaskDialog
 import com.todolistapp.todolist.ui.components.FilterBar
 import com.todolistapp.todolist.ui.components.TaskItem
+import com.todolistapp.todolist.viewmodel.SortType
 import com.todolistapp.todolist.viewmodel.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,11 +64,13 @@ fun TodoListScreen(
 
     val tasks by viewModel.tasks.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
+    val sortType by viewModel.sortType.collectAsStateWithLifecycle()
     val allExpanded by viewModel.allExpanded.collectAsStateWithLifecycle()
 
     val expandedIds = remember { mutableStateMapOf<String, Boolean>() }
 
-    LaunchedEffect(allExpanded, tasks) {
+    // Synchronize local expandedIds with the global "allExpanded" state when it changes
+    LaunchedEffect(allExpanded) {
         tasks.forEach { task ->
             if (task.description.isNotBlank()) {
                 expandedIds[task.id] = allExpanded
@@ -70,28 +78,78 @@ fun TodoListScreen(
         }
     }
 
+    // Ensure new tasks are added to the map if they have descriptions
+    LaunchedEffect(tasks) {
+        tasks.forEach { task ->
+            if (task.description.isNotBlank() && !expandedIds.containsKey(task.id)) {
+                expandedIds[task.id] = allExpanded
+            }
+        }
+    }
+
+    // Determine if the icon should show "expand" or "collapse" based on the actual UI state
+    val isAnyWithDescriptionExpanded = tasks.filter { it.description.isNotBlank() }.any { expandedIds[it.id] == true }
+    val isEverythingWithDescriptionExpanded = tasks.filter { it.description.isNotBlank() }.all { expandedIds[it.id] == true }
+    val showCollapseIcon = isAnyWithDescriptionExpanded && isEverythingWithDescriptionExpanded
+
     var showAddDialog by remember { mutableStateOf(false) }
     var taskToEdit by remember { mutableStateOf<Task?>(null) }
     var taskToDelete by remember { mutableStateOf<Task?>(null) }
+    var showSortMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Moje zadania") },
+                title = { 
+                    Text(
+                        "Moje zadania",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    ) 
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.primary
                 ),
                 actions = {
+                    Box {
+                        IconButton(onClick = { showSortMenu = true }) {
+                            Icon(Icons.Default.FilterList, contentDescription = "Sortuj")
+                        }
+                        DropdownMenu(
+                            expanded = showSortMenu,
+                            onDismissRequest = { showSortMenu = false }
+                        ) {
+                            SortType.entries.forEach { type ->
+                                DropdownMenuItem(
+                                    text = { Text(type.label) },
+                                    onClick = {
+                                        viewModel.setSortType(type)
+                                        showSortMenu = false
+                                    },
+                                    trailingIcon = {
+                                        if (sortType == type) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+
                     if (tasks.any { it.description.isNotBlank() }) {
                         IconButton(onClick = { viewModel.toggleAllExpanded() }) {
                             Icon(
-                                imageVector = if (allExpanded) {
+                                imageVector = if (showCollapseIcon) {
                                     Icons.Default.KeyboardArrowUp
                                 } else {
                                     Icons.Default.KeyboardArrowDown
                                 },
-                                contentDescription = if (allExpanded) "Zwiń wszystkie" else "Rozwiń wszystkie"
+                                contentDescription = if (showCollapseIcon) "Zwiń wszystkie" else "Rozwiń wszystkie"
                             )
                         }
                     }
@@ -144,6 +202,16 @@ fun TodoListScreen(
                 ) {
                     items(tasks, key = { it.id }) { task ->
                         val isExpanded = expandedIds[task.id] ?: false
+                        val dismissState = androidx.compose.material3.rememberSwipeToDismissBoxState(
+                            confirmValueChange = {
+                                if (it == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) {
+                                    taskToDelete = task
+                                    false // Don't dismiss yet, wait for dialog
+                                } else {
+                                    false
+                                }
+                            }
+                        )
                         TaskItem(
                             task = task,
                             isExpanded = isExpanded,
@@ -151,7 +219,8 @@ fun TodoListScreen(
                                 expandedIds[task.id] = !isExpanded
                             },
                             onEdit = { taskToEdit = task },
-                            onDelete = { taskToDelete = task }
+                            onDelete = { /* Handled by dismissState */ },
+                            dismissState = dismissState
                         )
                     }
                 }

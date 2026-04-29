@@ -1,3 +1,4 @@
+# Gradle files
 .gradle/
 build/
 
@@ -6,6 +7,8 @@ local.properties
 
 # Log/OS Files
 *.log
+.DS_Store
+Thumbs.db
 
 # Android Studio generated files and folders
 captures/
@@ -15,18 +18,17 @@ captures/
 *.apk
 output-metadata.json
 
-# IntelliJ
-*.iml
+# IntelliJ / Android Studio
 .idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+*.iml
 
 # Keystore files
 *.jks
 *.keystore
 
 # Google Services (e.g. APIs or Firebase)
+# Keep this ignored for security if you share your code publicly.
+# You must manually provide this file in the 'app/' directory to build.
 google-services.json
 
 # Android Profiling

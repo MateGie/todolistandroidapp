@@ -5,10 +5,13 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "tasks")
 data class Task(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
-    val title: String,
+    @PrimaryKey
+    val id: String = "",
+    val title: String = "",
     val description: String = "",
-    val status: TaskStatus = TaskStatus.ACTIVE,
+    val status: String = TaskStatus.ACTIVE.name,
     val createdAt: Long = System.currentTimeMillis()
-)
+) {
+    val statusEnum: TaskStatus
+        get() = runCatching { TaskStatus.valueOf(status) }.getOrDefault(TaskStatus.ACTIVE)
+}

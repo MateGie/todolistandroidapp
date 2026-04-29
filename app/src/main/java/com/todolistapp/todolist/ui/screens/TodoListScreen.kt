@@ -1,15 +1,38 @@
 package com.todolistapp.todolist.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -24,15 +47,21 @@ import com.todolistapp.todolist.viewmodel.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoListScreen(viewModel: TaskViewModel = viewModel()) {
+fun TodoListScreen(
+    userId: String,
+    onLogout: () -> Unit
+) {
+    val viewModel: TaskViewModel = viewModel(
+        key = userId,
+        factory = TaskViewModel.Factory(userId)
+    )
+
     val tasks by viewModel.tasks.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
     val allExpanded by viewModel.allExpanded.collectAsStateWithLifecycle()
 
-    // Per-task expanded state: taskId -> Boolean
-    val expandedIds = remember { mutableStateMapOf<Long, Boolean>() }
+    val expandedIds = remember { mutableStateMapOf<String, Boolean>() }
 
-    // When allExpanded changes, sync all visible tasks
     LaunchedEffect(allExpanded, tasks) {
         tasks.forEach { task ->
             if (task.description.isNotBlank()) {
@@ -48,24 +77,27 @@ fun TodoListScreen(viewModel: TaskViewModel = viewModel()) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Moje Zadania") },
+                title = { Text("Moje zadania") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 actions = {
-                    // Expand / Collapse all button
-                    val hasAnyDescription = tasks.any { it.description.isNotBlank() }
-                    if (hasAnyDescription) {
+                    if (tasks.any { it.description.isNotBlank() }) {
                         IconButton(onClick = { viewModel.toggleAllExpanded() }) {
                             Icon(
-                                imageVector = if (allExpanded)
+                                imageVector = if (allExpanded) {
                                     Icons.Default.KeyboardArrowUp
-                                else
-                                    Icons.Default.KeyboardArrowDown,
-                                contentDescription = if (allExpanded) "Zwij wszystkie" else "Rozwij wszystkie"
+                                } else {
+                                    Icons.Default.KeyboardArrowDown
+                                },
+                                contentDescription = if (allExpanded) "Zwiń wszystkie" else "Rozwiń wszystkie"
                             )
                         }
+                    }
+
+                    TextButton(onClick = onLogout) {
+                        Text("Wyloguj")
                     }
                 }
             )
@@ -99,7 +131,7 @@ fun TodoListScreen(viewModel: TaskViewModel = viewModel()) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Brak zadan.\nDotknij + aby dodac nowe.",
+                        text = "Brak zadań.\nDotknij + aby dodać nowe.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         textAlign = TextAlign.Center
@@ -127,7 +159,6 @@ fun TodoListScreen(viewModel: TaskViewModel = viewModel()) {
         }
     }
 
-    // --- Add Dialog ---
     if (showAddDialog) {
         AddEditTaskDialog(
             onConfirm = { title, desc, status ->
@@ -138,7 +169,6 @@ fun TodoListScreen(viewModel: TaskViewModel = viewModel()) {
         )
     }
 
-    // --- Edit Dialog ---
     taskToEdit?.let { task ->
         AddEditTaskDialog(
             task = task,
@@ -150,22 +180,24 @@ fun TodoListScreen(viewModel: TaskViewModel = viewModel()) {
         )
     }
 
-    // --- Delete Confirmation ---
     taskToDelete?.let { task ->
         AlertDialog(
             onDismissRequest = { taskToDelete = null },
-            title = { Text("Usun zadanie") },
-            text = { Text("Czy na pewno chcesz usunac \"${task.title}\"?") },
+            title = { Text("Usuń zadanie") },
+            text = { Text("Czy na pewno chcesz usunąć \"${task.title}\"?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteTask(task)
                     taskToDelete = null
-                }) { Text("Usun", color = MaterialTheme.colorScheme.error) }
+                }) {
+                    Text("Usuń", color = MaterialTheme.colorScheme.error)
+                }
             },
             dismissButton = {
-                TextButton(onClick = { taskToDelete = null }) { Text("Anuluj") }
+                TextButton(onClick = { taskToDelete = null }) {
+                    Text("Anuluj")
+                }
             }
         )
     }
 }
-

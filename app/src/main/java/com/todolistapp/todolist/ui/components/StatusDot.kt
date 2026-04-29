@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 import com.todolistapp.todolist.data.model.TaskStatus
 
 fun TaskStatus.color(): Color = when (this) {
-    TaskStatus.ACTIVE      -> Color(0xFF2196F3) // niebieski
-    TaskStatus.IN_PROGRESS -> Color(0xFFFF9800) // pomaranczowy
-    TaskStatus.ON_HOLD     -> Color(0xFF9E9E9E) // szary
-    TaskStatus.COMPLETED   -> Color(0xFF4CAF50) // zielony
+    TaskStatus.ACTIVE -> Color(0xFF2196F3)
+    TaskStatus.IN_PROGRESS -> Color(0xFFFF9800)
+    TaskStatus.ON_HOLD -> Color(0xFF9E9E9E)
+    TaskStatus.COMPLETED -> Color(0xFF4CAF50)
 }
 
 @Composable

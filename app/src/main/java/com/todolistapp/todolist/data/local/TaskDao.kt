@@ -1,8 +1,12 @@
 package com.todolistapp.todolist.data.local
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import com.todolistapp.todolist.data.model.Task
-import com.todolistapp.todolist.data.model.TaskStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -12,7 +16,7 @@ interface TaskDao {
     fun getAllTasks(): Flow<List<Task>>
 
     @Query("SELECT * FROM tasks WHERE status = :status ORDER BY createdAt DESC")
-    fun getTasksByStatus(status: TaskStatus): Flow<List<Task>>
+    fun getTasksByStatus(status: String): Flow<List<Task>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: Task)

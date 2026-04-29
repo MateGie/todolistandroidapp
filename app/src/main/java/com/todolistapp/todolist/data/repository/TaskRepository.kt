@@ -10,7 +10,7 @@ class TaskRepository(private val taskDao: TaskDao) {
     fun getAllTasks(): Flow<List<Task>> = taskDao.getAllTasks()
 
     fun getTasksByStatus(status: TaskStatus): Flow<List<Task>> =
-        taskDao.getTasksByStatus(status)
+        taskDao.getTasksByStatus(status.name)
 
     suspend fun addTask(task: Task) = taskDao.insertTask(task)
 

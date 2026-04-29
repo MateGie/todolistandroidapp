@@ -1,15 +1,29 @@
 package com.todolistapp.todolist.ui.components
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -28,7 +42,8 @@ fun TaskItem(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isCompleted = task.status == TaskStatus.COMPLETED
+    val status = task.statusEnum
+    val isCompleted = status == TaskStatus.COMPLETED
     val hasLongDescription = task.description.isNotBlank()
     val arrowRotation by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
@@ -38,25 +53,22 @@ fun TaskItem(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = task.status.color().copy(alpha = 0.08f)
+            containerColor = status.color().copy(alpha = 0.08f)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // --- Main row ---
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Status dot
                 StatusDot(
-                    status = task.status,
+                    status = status,
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
 
-                // Title + short description preview
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -72,7 +84,6 @@ fun TaskItem(
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    // Show collapsed preview only when not expanded
                     if (hasLongDescription && !isExpanded) {
                         Text(
                             text = task.description,
@@ -84,7 +95,6 @@ fun TaskItem(
                     }
                 }
 
-                // Expand arrow (only if there's a description)
                 if (hasLongDescription) {
                     IconButton(
                         onClick = onToggleExpand,
@@ -92,7 +102,7 @@ fun TaskItem(
                     ) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = if (isExpanded) "Zwij" else "Rozwij",
+                            contentDescription = if (isExpanded) "Zwiń" else "Rozwiń",
                             modifier = Modifier.rotate(arrowRotation)
                         )
                     }
@@ -104,13 +114,12 @@ fun TaskItem(
                 IconButton(onClick = onDelete) {
                     Icon(
                         Icons.Default.Delete,
-                        contentDescription = "Usun",
+                        contentDescription = "Usuń",
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
             }
 
-            // --- Expanded description ---
             AnimatedVisibility(
                 visible = isExpanded && hasLongDescription,
                 enter = expandVertically() + fadeIn(),

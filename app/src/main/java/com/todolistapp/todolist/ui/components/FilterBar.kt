@@ -1,9 +1,12 @@
 package com.todolistapp.todolist.ui.components
 
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.*
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -11,11 +14,11 @@ import androidx.compose.ui.unit.dp
 import com.todolistapp.todolist.viewmodel.FilterType
 
 fun FilterType.label(): String = when (this) {
-    FilterType.ALL         -> "Wszystkie"
-    FilterType.ACTIVE      -> "Aktywne"
+    FilterType.ALL -> "Wszystkie"
+    FilterType.ACTIVE -> "Aktywne"
     FilterType.IN_PROGRESS -> "W trakcie"
-    FilterType.ON_HOLD     -> "Odlozone"
-    FilterType.COMPLETED   -> "Ukonczone"
+    FilterType.ON_HOLD -> "Odłożone"
+    FilterType.COMPLETED -> "Ukończone"
 }
 
 @Composable

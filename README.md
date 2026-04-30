@@ -32,7 +32,7 @@ A modern, clean, and feature-rich To-Do List application built with the latest A
 <img alt="Expansion" width="400" src="screenshots/expansion.png"/>
 
 ### Responsive Design  
-<img alt="Responsive" width="400" src="screenshots/responsive.png"/>
+<img alt="Responsive" width="800" src="screenshots/responsive.png"/>
 
 ### Filter & Sort  
 <img alt="Filter" width="400" src="screenshots/filter.png"/> 

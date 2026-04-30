@@ -19,23 +19,23 @@ A modern, clean, and feature-rich To-Do List application built with the latest A
 
 ## Screenshots
 
-Splash Screen  
-![Splash](screenshots/splash.png)
+### Splash Screen  
+<img alt="Splash" width="400" src="screenshots/splash.png"/>
 
-Login Screen  
-![Login](screenshots/login.png)
+### Login Screen  
+<img alt="Login" width="400" src="screenshots/login.png"/>
 
-Dark and light theme support  
-![Tasks](screenshots/tasks.png)
+### Dark and Light Theme Support  
+<img alt="Tasks" width="400" src="screenshots/tasks.png"/>
 
-Task Expansion  
-![Expansion](screenshots/expansion.png)
+### Task Expansion  
+<img alt="Expansion" width="400" src="screenshots/expansion.png"/>
 
-Responsive design  
-![Responsive](screenshots/responsive.png)
+### Responsive Design  
+<img alt="Responsive" width="400" src="screenshots/responsive.png"/>
 
-Filter & Sort  
-![Filter](screenshots/filter.png)
+### Filter & Sort  
+<img alt="Filter" width="400" src="screenshots/filter.png"/> 
 
 ## Tech Stack
 
